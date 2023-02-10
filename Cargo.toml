@@ -1,0 +1,8 @@
+[package]
+name = "read & write speed"
+version = "1.67.1"
+authors = ["tomasneuroni"]
+edition = "2021"
+
+[dependencies]
+

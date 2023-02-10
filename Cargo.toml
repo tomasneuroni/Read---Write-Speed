@@ -1,8 +1,10 @@
 [package]
-name = "read & write speed"
+name = "read_write_speed"
 version = "1.67.1"
 authors = ["tomasneuroni"]
 edition = "2021"
 
 [dependencies]
-
+termion = "1.0.5"
+spinner = "0.5.0"
+chrono = "0.4.9"

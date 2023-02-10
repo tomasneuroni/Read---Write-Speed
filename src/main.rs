@@ -1,55 +1,29 @@
-use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
-use std::time::{Duration, Instant};
-use std::thread::sleep;
+use std::fs::File;
+use std::io::{BufReader, BufWriter, Read, Write};
+use std::time::Instant;
 
-const MB: u64 = 1024 * 1024;
+const BUFFER_SIZE: usize = 1024 * 1024;
 
 fn main() {
-    println!("Enter the number of seconds you would like to run the test for:");
-    let mut duration = String::new();
-    std::io::stdin().read_line(&mut duration).unwrap();
-    let duration = duration.trim().parse::<u64>().unwrap();
-
-    println!("Running disk speed test for {} seconds...", duration);
-
-    let filename = "test.txt";
-    let data_size = MB * 100;
+    let file = File::create("test.bin").unwrap();
+    let mut writer = BufWriter::new(file);
 
     let start = Instant::now();
-    let end = start + Duration::from_secs(duration);
-
-    loop {
-        let now = Instant::now();
-        if now >= end {
-            break;
-        }
-
-        println!("Writing data to disk...");
-        let write_start = Instant::now();
-        let mut file = OpenOptions::new().write(true).create(true).open(filename).unwrap();
-        let data = vec![0u8; data_size as usize];
-        file.write_all(&data).unwrap();
-        file.flush().unwrap();
-        let write_elapsed = write_start.elapsed();
-
-        println!("Reading data from disk...");
-        let read_start = Instant::now();
-        let mut file = File::open(filename).unwrap();
-        let mut data = vec![0u8; data_size as usize];
-        file.read_exact(&mut data).unwrap();
-        let read_elapsed = read_start.elapsed();
-
-        let write_speed = (data_size as f64) / (write_elapsed.as_secs_f64());
-        let read_speed = (data_size as f64) / (read_elapsed.as_secs_f64());
-
-        println!("Write speed: {:.2} MB/s", write_speed / MB as f64);
-        println!("Read speed: {:.2} MB/s", read_speed / MB as f64);
-        println!("");
-
-        sleep(Duration::from_secs(1));
+    for _ in 0..100 {
+        writer.write_all(&[0; BUFFER_SIZE]).unwrap();
     }
+    let write_speed = 100.0 * BUFFER_SIZE as f64 / start.elapsed().as_secs_f64();
 
-    println!("Finished disk speed test");
-    std::fs::remove_file(filename).unwrap();
+    let file = File::open("test.bin").unwrap();
+    let mut reader = BufReader::new(file);
+    let mut buffer = vec![0; BUFFER_SIZE];
+
+    let start = Instant::now();
+    for _ in 0..100 {
+        reader.read_exact(&mut buffer).unwrap();
+    }
+    let read_speed = 100.0 * BUFFER_SIZE as f64 / start.elapsed().as_secs_f64();
+
+    println!("Read speed: {:.2} MB/s", read_speed / 1024.0 / 1024.0);
+    println!("Write speed: {:.2} MB/s", write_speed / 1024.0 / 1024.0);
 }
